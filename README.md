@@ -7,53 +7,236 @@
 <a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
 </p>
 
-## About Laravel
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+#  README — Microservicio de Usuarios en Laravel
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## 1. Descripción General
 
-## Learning Laravel
+Este proyecto implementa un **microservicio RESTful para la gestión de usuarios** utilizando **Laravel 12.37.0**, siguiendo el patrón **MVC (Modelo–Vista–Controlador)** y el enfoque **API First**.
+Está diseñado para ser **escalable horizontalmente**, ejecutándose en **múltiples instancias** sin compartir estado, y utiliza **Laravel Sanctum** para la autenticación basada en tokens personales.
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+El sistema devuelve **todas las respuestas en formato JSON**, incluye **validaciones de entrada**, y expone endpoints CRUD seguros y estandarizados.
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+---
 
-## Laravel Sponsors
+## 2. Objetivos Técnicos
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+* Desarrollar una API RESTful en Laravel.
+* Implementar autenticación sin sesiones mediante Laravel Sanctum.
+* Organizar el código bajo el patrón MVC.
+* Asegurar validaciones de entrada y respuestas JSON.
+* Permitir múltiples instancias independientes para escalabilidad.
+* Probar todas las operaciones mediante Postman.
 
-### Premium Partners
+---
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+## 3. Estructura del Proyecto
 
-## Contributing
+Generada mediante:
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+```
+composer create-project laravel/laravel microservicio_usuarios
+```
 
-## Code of Conduct
+Estructura principal:
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+```
+microservicio_usuarios/
+ ├── app/
+ │   ├── Http/
+ │   │   └── Controllers/
+ │   └── Models/
+ ├── routes/
+ │   └── api.php
+ ├── database/
+ │   └── migrations/
+ ├── .env
+ └── artisan
+```
 
-## Security Vulnerabilities
+---
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+## 4. Configuración de Base de Datos
 
+Se configuró el archivo `.env` para conexión local a MySQL:
+
+* `DB_CONNECTION=mysql`
+* `DB_HOST=127.0.0.1`
+* `DB_PORT=3307`
+* `DB_DATABASE=microservicio_usuarios`
+* `DB_USERNAME=root`
+* `DB_PASSWORD=`
+
+Base de datos creada mediante:
+
+```
+CREATE DATABASE microservicio_usuarios;
+```
+
+También se definieron los drivers:
+
+```
+QUEUE_CONNECTION=database
+SESSION_DRIVER=array
+CACHE_STORE=array
+```
+
+Esto evita el almacenamiento de sesiones entre instancias (requisito de escalabilidad).
+
+---
+
+## 5. Migraciones y Modelo de Usuario
+
+Se generó el modelo `Usuario` junto con su migración:
+
+```
+php artisan make:model Usuario -m
+```
+
+La migración define la tabla `usuarios` con campos comunes y adicionales (rol, sexo, historial médico, etc.).
+El modelo `Usuario` hereda de `Authenticatable` y usa `HasApiTokens` para integrarse con Sanctum.
+
+**Explicación de componentes del modelo:**
+
+* **Authenticatable:** permite usar autenticación por tokens.
+* **HasApiTokens:** genera y valida tokens de Sanctum.
+* **$fillable:** define los campos insertables desde peticiones JSON.
+* **$hidden:** oculta la contraseña y el token en las respuestas.
+* **$casts:** convierte tipos de datos (por ejemplo, fechas) automáticamente.
+
+---
+
+## 6. Instalación y Configuración de Laravel Sanctum
+
+Se instaló con:
+
+```
+composer require laravel/sanctum
+```
+
+Luego se publicaron las migraciones:
+
+```
+php artisan vendor:publish --provider="Laravel\Sanctum\SanctumServiceProvider"
+php artisan migrate
+```
+
+Esto creó la tabla `personal_access_tokens` que almacena los tokens de acceso.
+
+En **bootstrap/app.php** se configuró el middleware:
+
+```php
+->withMiddleware(function (Middleware $middleware): void {
+    $middleware->statefulApi();
+})
+```
+
+Esto permite manejar APIs stateful o stateless sin sesiones compartidas.
+
+---
+
+## 7. Controladores
+
+### a. Controlador Base
+
+Ubicación: `app/Http/Controllers/Controller.php`
+Centraliza autorización (`AuthorizesRequests`) y validación (`ValidatesRequests`).
+
+### b. Controlador de Autenticación
+
+`AuthController` implementa:
+
+* **register()**: registra usuarios y genera tokens.
+* **login()**: valida credenciales y devuelve nuevo token.
+* **logout()**: invalida el token actual.
+
+Incluye validaciones:
+
+* Formato de correo electrónico.
+* Longitud mínima de contraseña.
+* Restricción de roles permitidos (`ADMIN` o `USER`).
+
+### c. Controlador de Usuarios
+
+`UsuarioController` gestiona el CRUD:
+
+* `index()`: lista todos los usuarios.
+* `store()`: crea un nuevo usuario con validaciones.
+* `show($id)`: obtiene un usuario por ID.
+* `update()`: actualiza datos con validaciones condicionales (`sometimes`).
+* `destroy()`: elimina usuarios.
+
+---
+
+## 8. Rutas API
+
+Definidas en `routes/api.php`, siguiendo estructura RESTful:
+
+* `/register`, `/login`, `/logout` → autenticación (controlador `AuthController`).
+* `/usuarios` → operaciones CRUD (controlador `UsuarioController`).
+* Middleware `auth:sanctum` protege el cierre de sesión y rutas seguras.
+
+---
+
+## 9. Pruebas en Postman (Flujo Completo)
+
+### Escenario
+
+Dos instancias corriendo en paralelo:
+
+| Instancia | URL Base                    | Puerto | Descripción |
+| --------- | --------------------------- | ------ | ----------- |
+| A         | `http://127.0.0.1:8000/api` | 8000   | Principal   |
+| B         | `http://127.0.0.1:8006/api` | 8006   | Réplica     |
+
+### Flujo por instancia
+
+1. **Registro** → POST `/register`
+   Se crea usuario y genera token.
+2. **Inicio de sesión** → POST `/login`
+   Devuelve un token de acceso.
+3. **Acceso a recursos** → GET `/usuarios`
+   Requiere encabezado `Authorization: Bearer <token>`.
+4. **Cierre de sesión** → POST `/logout`
+   Invalida el token actual.
+
+### Validación de independencia
+
+* Un token emitido en la instancia A no es válido en la instancia B (`401 Unauthorized`).
+* Cada instancia maneja sus tokens de manera aislada (cumpliendo el requisito de escalabilidad horizontal).
+
+---
+
+## 10. Limpieza y Optimización
+
+Antes de ejecutar pruebas:
+
+```
+php artisan optimize:clear
+```
+
+Esto asegura que no haya rutas o configuraciones en caché que afecten las pruebas.
+
+---
+
+## 11. Cumplimiento de Requisitos Técnicos
+
+| Requisito             | Cumple | Descripción                                              |
+| --------------------- | :----: | -------------------------------------------------------- |
+| Laravel Framework     |    ✔   | Proyecto creado con Laravel 12.37                        |
+| Arquitectura RESTful  |    ✔   | Endpoints HTTP CRUD                                      |
+| Patrón MVC            |    ✔   | Separación clara de modelo, controlador y rutas          |
+| Rutas en api.php      |    ✔   | Todas las rutas definidas en este archivo                |
+| Respuestas JSON       |    ✔   | Todas las respuestas estructuradas en JSON               |
+| Validaciones de datos |    ✔   | Reglas implementadas con `$request->validate()`          |
+| Autenticación         |    ✔   | Implementada con Sanctum (tokens personales)             |
+| Escalabilidad         |    ✔   | Múltiples instancias (8000 y 8006) sin estado compartido |
+| Pruebas               |    ✔   | Verificadas mediante Postman                             |
+| Manejo de errores     |    ✔   | Validaciones y excepciones controladas                   |
+
+---
 ## License
 
 The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+
