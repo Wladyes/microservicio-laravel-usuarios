@@ -236,4 +236,7 @@ Esto asegura que no haya rutas o configuraciones en caché que afecten las prueb
 | Manejo de errores     |    ✔   | Validaciones y excepciones controladas                   |
 
 ---
+## License
+
+The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
 
