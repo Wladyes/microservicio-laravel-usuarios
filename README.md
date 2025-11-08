@@ -7,6 +7,12 @@
 <a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
 </p>
 
+📌 Descripción General
+
+Este proyecto implementa un microservicio de gestión de usuarios desarrollado en Laravel 12 con PHP 8.2, siguiendo una arquitectura RESTful, el patrón MVC, y preparado para ejecutarse en múltiples instancias (por ejemplo, en los puertos 8000 y 8006) de manera independiente, garantizando escalabilidad y separación de estado.
+
+El microservicio forma parte de un sistema distribuido (como Citas Médicas o Facturación) y proporciona operaciones CRUD completas, autenticación y validación de datos.
+
 ⚙️ 1. Configuración del Proyecto
 🔹 Comandos de instalación
 # Crear el proyecto Laravel
