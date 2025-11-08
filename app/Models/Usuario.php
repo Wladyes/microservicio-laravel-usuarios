@@ -3,24 +3,19 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 
 /**
- * Modelo: Usuario
- * -----------------
- * Representa la tabla 'usuarios' en la base de datos del microservicio.
- * Este modelo ahora es autenticable (hereda de Authenticatable)
- * y usa Laravel Sanctum para generar tokens personales.
+ * Modelo Usuario.
+ * Representa la tabla 'usuarios' y permite autenticación con Sanctum.
  */
 class Usuario extends Authenticatable
 {
-    // 🔹 Habilita autenticación por tokens (Sanctum) y fábricas de prueba
     use HasApiTokens, HasFactory;
 
     /**
-     * Nombre de la tabla asociada al modelo.
+     * Nombre de la tabla asociada.
      */
     protected $table = 'usuarios';
 
@@ -30,29 +25,28 @@ class Usuario extends Authenticatable
     protected $primaryKey = 'id';
 
     /**
-     * Laravel usa 'created_at' y 'updated_at' automáticamente.
-     * Esta propiedad indica que se deben manejar.
+     * Indica si se usan timestamps (created_at, updated_at).
      */
     public $timestamps = true;
 
     /**
-     * Campos que pueden asignarse en masa (mass assignment).
+     * Campos que pueden asignarse masivamente.
      */
     protected $fillable = [
-        'nombre',               // Nombre completo del usuario
-        'correo',               // Correo electrónico único
-        'password',             // Contraseña encriptada
-        'rol',                  // Rol del usuario (ADMIN o USER)
-        'fecha_nacimiento',     // Fecha de nacimiento (si aplica)
-        'sexo',                 // Sexo del usuario
-        'numero_seguro',        // Número de seguro médico (si aplica)
-        'historial_medico',     // Antecedentes o condiciones médicas
-        'contacto_emergencia',  // Teléfono de contacto de emergencia
-        'fecha_creacion'        // Fecha de registro
+        'nombre',
+        'correo',
+        'password',
+        'rol',
+        'fecha_nacimiento',
+        'sexo',
+        'numero_seguro',
+        'historial_medico',
+        'contacto_emergencia',
+        'fecha_creacion'
     ];
 
     /**
-     * Campos ocultos al devolver datos JSON.
+     * Campos ocultos en respuestas JSON.
      */
     protected $hidden = [
         'password',
